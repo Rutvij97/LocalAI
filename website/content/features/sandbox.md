@@ -4,9 +4,11 @@ weight: 4
 card: "Run Python on your files in an isolated sandbox."
 headline: 'Python in a <span class="hl">box</span>.'
 lede: "Put a spreadsheet in Files and ask for a chart. The Sandbox runs the code and saves the result in Files."
-docs: "/docs/features/addons/"
-scene: "s2-work"
-alt: "The llama in sunglasses lies at a cafe table with a blank badge on a lanyard."
+docs: "/docs/features/sandbox/"
+icon: "sandbox"
+illus: "sandbox"
+# demo: a name under static/media/ (<name>.mp4, .webm, .jpg) swaps the illustration for a muted loop.
+demo: ""
 points:
   - "Run Python and shell commands on your files."
   - "Code runs in an isolated sandbox (KVM or gVisor)."
