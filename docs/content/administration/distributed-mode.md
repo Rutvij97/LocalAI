@@ -3,13 +3,15 @@ disableToc = false
 title = "Distributed Mode"
 weight = 130
 aliases = ["/features/distributed-mode/"]
+description = "Run several LocalAI frontends and worker nodes with PostgreSQL and NATS."
+keywords = ["distributed","cluster","nodes","scale","nats"]
 +++
 
 Distributed mode enables horizontal scaling of LocalAI across multiple machines using **PostgreSQL** for state and node registry, and **NATS** for real-time coordination. Unlike the [P2P/federation approach]({{% relref "/administration/p2p-federated-inference" %}}), distributed mode is designed for production deployments and Kubernetes environments where you need centralized management, health monitoring, and deterministic routing.
 
-{{% notice note %}}
+{{% callout style="note" %}}
 Distributed mode requires authentication enabled with a **PostgreSQL** database - SQLite is not supported. This is because the node registry, job store, and other distributed state are stored in PostgreSQL tables.
-{{% /notice %}}
+{{% /callout %}}
 
 ## Architecture Overview
 
@@ -51,11 +53,11 @@ docker compose -f docker-compose.distributed.yaml up
 
 This starts PostgreSQL, NATS, a LocalAI frontend, and one worker node. When you send an inference request, the SmartRouter automatically installs the needed backend on the worker and loads the model. See the file for details on adding GPU support, shared volumes, and additional workers.
 
-{{% notice tip %}}
+{{% callout style="tip" %}}
 The compose file starts PostgreSQL, NATS, [Garage](https://garagehq.deuxfleurs.fr/) as S3-compatible object storage (with a one-shot step that creates its bucket and access key), a frontend, a model worker, an agent worker and a [chat worker](#chat-workers). The frontend and the chat worker store the chat files in Garage, and the frontend sends unattended chat turns to the chat worker. Its credentials are examples: change them, and the `rpc_secret` in `examples/distributed/garage.toml`, for anything beyond a local test.
 
 Use `docker-compose.distributed.yaml` for quick local testing. For production, deploy PostgreSQL and NATS as managed services and run frontends/workers on separate hosts.
-{{% /notice %}}
+{{% /callout %}}
 
 ## Frontend Configuration
 
@@ -76,7 +78,7 @@ The frontend is a standard LocalAI instance with distributed mode enabled. These
 | `--chat-worker` | `LOCALAI_CHAT_WORKER` | `false` | Run this instance as a [chat worker](#chat-workers) instead of a frontend for the unattended chat runs. |
 | `--chat-worker-max-turns` | `LOCALAI_CHAT_WORKER_MAX_TURNS` | `32` | On a [chat worker](#chat-workers), the most turns it runs at once. `0` means no limit. |
 | `--chat-start-timeout` | `LOCALAI_CHAT_START_TIMEOUT` | `30s` | How long a frontend waits for a [chat worker](#chat-workers) to start a turn, and how long the worker gives the start. |
-| `--auth` | `LOCALAI_AUTH` | `false` | **Must be `true`** for distributed mode |
+| `--auth-enabled` | `LOCALAI_AUTH` | `false` | **Must be `true`** for distributed mode |
 | `--auth-database-url` | `LOCALAI_AUTH_DATABASE_URL` | *(required)* | PostgreSQL connection URL |
 | `--backend-install-timeout` | `LOCALAI_NATS_BACKEND_INSTALL_TIMEOUT` | `15m` | How long the frontend waits for a worker to acknowledge a backend install before considering the request stalled. Raise it when workers pull large backend images over slow links. If a worker takes longer than this, the operation shows as "still installing in background" in the admin UI and clears once the worker finishes. |
 | `--backend-upgrade-timeout` | `LOCALAI_NATS_BACKEND_UPGRADE_TIMEOUT` | `15m` | Same as the install timeout, applied to backend upgrades (force-reinstall). |
@@ -181,9 +183,9 @@ The `error` envelope keeps OpenAI clients working unchanged; `loading` is additi
 
 The chat UI renders this state inline and retries automatically once the model reports ready. Poll `GET /api/models/{id}/load-status` for the same `loading` object at any time.
 
-{{% notice note %}}
+{{% callout style="note" %}}
 A frontend replica that dies mid-load does not wedge the model: the job row carries a lease, and a job whose lease ran out is failed and then released. The lease is renewed on a timer, not on byte progress, because a checkpoint load legitimately transfers zero bytes for many minutes.
-{{% /notice %}}
+{{% /callout %}}
 
 #### The worker bounds the work it runs
 
@@ -239,7 +241,7 @@ By default, NATS connections are anonymous: any client that can reach port `4222
 | `--nats-account-seed` | `LOCALAI_NATS_ACCOUNT_SEED` | Account signing seed (`SU...`). The frontend mints a per-node user JWT at registration (`nats_jwt` in the register response). |
 | `--nats-service-jwt` | `LOCALAI_NATS_SERVICE_JWT` | User JWT for the frontend (and optional fallback for agent workers) to publish install/upgrade and related subjects. |
 | `--nats-service-seed` | `LOCALAI_NATS_SERVICE_SEED` | User signing seed (`SU...`) paired with the service JWT. |
-| `--nats-worker-jwt-ttl` | `LOCALAI_NATS_WORKER_JWT_TTL` | Lifetime of minted worker JWTs (default `24h`). |
+| `--nats-worker-jwtttl` | `LOCALAI_NATS_WORKER_JWT_TTL` | Lifetime of minted worker JWTs (default `24h`). |
 | `--nats-require-auth` | `LOCALAI_NATS_REQUIRE_AUTH` | Fail startup if JWT credentials are missing when distributed mode is enabled. |
 
 ### NATS TLS / mTLS (optional)
@@ -248,7 +250,7 @@ Use `tls://` in `--nats-url` / `LOCALAI_NATS_URL` for encrypted transport. When 
 
 | Flag | Env Var | Description |
 |------|---------|-------------|
-| `--nats-tls-ca` | `LOCALAI_NATS_TLS_CA` | PEM file to verify the NATS server (private CA) |
+| `--nats-tlsca` | `LOCALAI_NATS_TLS_CA` | PEM file to verify the NATS server (private CA) |
 | `--nats-tls-cert` | `LOCALAI_NATS_TLS_CERT` | Client certificate for NATS mTLS |
 | `--nats-tls-key` | `LOCALAI_NATS_TLS_KEY` | Client private key (required with `--nats-tls-cert`) |
 
@@ -270,9 +272,9 @@ When `LOCALAI_NATS_REQUIRE_AUTH=true` and no static credentials are provided, a 
 
 Generate operator/account material with [`scripts/nats-auth-setup.sh`](https://github.com/mudler/LocalAI/blob/master/scripts/nats-auth-setup.sh) (requires [nsc](https://docs.nats.io/running-a-nats-service/configuration/securing_nats/auth_intro/nsc)). The frontend user it creates may publish and subscribe on the subjects the frontends use for the gallery, caches, state, chats and the Open Responses cancel (`responses.>`). Configure the NATS server with account resolver JWTs before enabling `LOCALAI_NATS_REQUIRE_AUTH`.
 
-{{% notice note %}}
+{{% callout style="note" %}}
 `LOCALAI_AUTH` (HTTP users/sessions) and NATS JWTs are separate: end-user API keys do not connect to NATS. HTTP registration still uses `LOCALAI_REGISTRATION_TOKEN`.
-{{% /notice %}}
+{{% /callout %}}
 
 ### Optional: S3 Object Storage
 
@@ -322,15 +324,15 @@ With `LOCALAI_DISTRIBUTED_SHARED_MODELS` enabled, workers use the shared
 absolute snapshot path and skip transfer. Otherwise, the controller stages the
 complete snapshot tree to each worker before loading the backend.
 
-{{% notice warning %}}
+{{% callout style="warning" %}}
 Every controller and worker must have enough disk space for its own snapshot
 copy unless shared-models mode is enabled. Account for temporary partial files
 during installation as well as the committed snapshot.
-{{% /notice %}}
+{{% /callout %}}
 
-{{% notice warning %}}
+{{% callout style="warning" %}}
 The worker HTTP file transfer server is authenticated by `LOCALAI_REGISTRATION_TOKEN`. If the token is **empty**, the server **fails open** - anyone who can reach the port gets read/write access to the worker's models/staging/data directories (a remote model-poisoning / exfiltration vector). The worker logs a loud warning at startup in this case. Always set `LOCALAI_REGISTRATION_TOKEN` in distributed mode, and set `LOCALAI_DISTRIBUTED_REQUIRE_AUTH=true` (frontend **and** workers) to make a missing token *or* missing NATS credentials a hard startup error rather than a silent fail-open. Firewall the file-transfer port (gRPC base − 1) so only the frontend can reach it.
-{{% /notice %}}
+{{% /callout %}}
 
 ### Automatic backend updates
 
@@ -416,18 +418,18 @@ local-ai worker \
 | `--nats-jwt` | `LOCALAI_NATS_JWT` | *(empty)* | Optional override for the `nats_jwt` returned at registration |
 | `--nats-user-seed` | `LOCALAI_NATS_USER_SEED` | *(empty)* | Optional override for `nats_user_seed` from registration |
 | `--nats-require-auth` | `LOCALAI_NATS_REQUIRE_AUTH` | `false` | Require NATS JWT+seed (from registration or env) |
-| `--nats-tls-ca` | `LOCALAI_NATS_TLS_CA` | *(empty)* | PEM file for NATS server CA |
+| `--nats-tlsca` | `LOCALAI_NATS_TLS_CA` | *(empty)* | PEM file for NATS server CA |
 | `--nats-tls-cert` | `LOCALAI_NATS_TLS_CERT` | *(empty)* | Client certificate for NATS mTLS |
 | `--nats-tls-key` | `LOCALAI_NATS_TLS_KEY` | *(empty)* | Client private key for NATS mTLS |
 | `--backends-path` | `LOCALAI_BACKENDS_PATH` | `./backends` | Path to backend binaries |
 | `--models-path` | `LOCALAI_MODELS_PATH` | `./models` | Path to model files |
 | `--vram-budget` | `LOCALAI_VRAM_BUDGET` | *(empty)* | Cap the VRAM this node advertises for model placement, as a percentage (e.g. `80%`) or an absolute amount (e.g. `12GB`). Empty uses all detected VRAM. See [Per-node VRAM budget](#per-node-vram-budget). |
 
-{{% notice tip %}}
+{{% callout style="tip" %}}
 **Advertise address:** The `--addr` flag is the local bind address for gRPC. The `--advertise-addr` is the address the frontend stores and uses to reach the worker via gRPC. If not set, the worker auto-derives it by replacing `0.0.0.0` with the OS hostname (which in Docker is the container ID, resolvable via Docker DNS). Set `--advertise-addr` explicitly when the auto-detected hostname is not routable from the frontend (e.g., in Kubernetes, use the pod's service DNS name).
 
 **HTTP file transfer:** Each worker also runs a small HTTP server for file transfer (model files, configs). By default it listens on the gRPC base port - 1 (e.g., if gRPC base is 50051, HTTP is on 50050). gRPC ports grow upward from the base port as additional models are loaded. Set `--advertise-http-addr` if the auto-detected address is not routable from the frontend.
-{{% /notice %}}
+{{% /callout %}}
 
 ### Disabling backend installation on workers
 
@@ -785,9 +787,9 @@ Two outcomes are deliberately **not** errors:
 - **Nothing matched.** The worker reports an empty stopped-process list, logged as `backend.stop matched no running process`. Stopping a backend that is not running leaves the caller in the state it asked for, and eviction and cleanup paths stop already-gone models routinely.
 - **No answer.** A worker built before this reply performs the stop and never responds. The controller waits 15 seconds, logs `Worker did not acknowledge backend.stop`, and assumes delivery, so a fleet mid-upgrade keeps working. A transport failure is reported rather than assumed.
 
-{{% notice note %}}
+{{% callout style="note" %}}
 On a mixed fleet, every stop against a worker that predates the reply costs the full 15-second wait before falling back. Upgrading the workers removes the delay.
-{{% /notice %}}
+{{% /callout %}}
 
 ### Per-node VRAM budget
 
@@ -918,14 +920,14 @@ without a fresh timestamp before it marks a node `offline`. It is configurable w
 `--node-heartbeat-checkpoint` must widen this to match, or the beats that checkpointing
 suppresses will read as a dead node.
 
-{{% notice note %}}
+{{% callout style="note" %}}
 Marking a node `offline` from a stale heartbeat now takes up to five minutes. This is
 the slowest of the three ways a dead worker is noticed, not the only one. The per-model
 gRPC health check still probes each loaded model on the health-monitor interval
 (default `15s`) and removes replicas whose backend has died, and a request routed to a
 gone worker still fails and is retried elsewhere at request time. Neither of those
 paths reads `last_heartbeat`, so neither is slowed by this change.
-{{% /notice %}}
+{{% /callout %}}
 
 To go back to a durable write per beat -- on a database with plenty of write headroom,
 or while debugging heartbeat delivery -- set `LOCALAI_NODE_HEARTBEAT_CHECKPOINT` to a
@@ -1006,7 +1008,7 @@ Agent workers:
 - Handle MCP tool discovery and execution requests from the frontend
 - Close their MCP sessions when a backend stops
 
-The agent worker does not run chat turns. To run the turns of triggers, connectors and [agent jobs]({{% relref "/features/agent-jobs" %}}) away from the frontends, use [chat workers](#chat-workers). The options `LOCALAI_AGENT_SUBJECT`, `LOCALAI_AGENT_QUEUE`, `LOCALAI_MCP_CI_JOB_TIMEOUT`, `LOCALAI_API_URL` and `LOCALAI_API_TOKEN` are still accepted by `local-ai agent-worker` and ignored. The frontends and the chat workers read `LOCALAI_MCP_CI_JOB_TIMEOUT` and `LOCALAI_AGENT_JOB_RETENTION_DAYS`.
+The agent worker does not run chat turns. To run the turns of triggers, connectors and [agent jobs]({{% relref "/features/chats-and-agents/agent-jobs" %}}) away from the frontends, use [chat workers](#chat-workers). The options `LOCALAI_AGENT_SUBJECT`, `LOCALAI_AGENT_QUEUE`, `LOCALAI_MCP_CI_JOB_TIMEOUT`, `LOCALAI_API_URL` and `LOCALAI_API_TOKEN` are still accepted by `local-ai agent-worker` and ignored. The frontends and the chat workers read `LOCALAI_MCP_CI_JOB_TIMEOUT` and `LOCALAI_AGENT_JOB_RETENTION_DAYS`.
 
 In the docker-compose setup, the agent worker mounts the Docker socket so it can run MCP stdio servers (e.g., `docker run` commands):
 
@@ -1019,7 +1021,7 @@ agent-worker-1:
 
 ## Chat Workers
 
-A chat worker runs the turns of the chats that no person starts at the keyboard: [trigger]({{% relref "/features/chats-agents" %}}#triggers) runs, [agent jobs]({{% relref "/features/agent-jobs" %}}) and connector messages. Use one to keep this work off the frontends that serve your users.
+A chat worker runs the turns of the chats that no person starts at the keyboard: [trigger]({{% relref "/features/chats-and-agents/chats-agents" %}}#triggers) runs, [agent jobs]({{% relref "/features/chats-and-agents/agent-jobs" %}}) and connector messages. Use one to keep this work off the frontends that serve your users.
 
 A chat worker is a `local-ai run` instance with the same configuration as a frontend (database, NATS, models, storage and data path), plus `--chat-worker`. The `chat-worker-1` service in `docker-compose.distributed.yaml` is an example. It needs the same NATS credentials as a frontend. Turn on the routing on the frontends with `--distributed-chat-workers`:
 
@@ -1185,9 +1187,9 @@ options:
 | `ds4_listen:0.0.0.0:1234` | Address that workers dial into. |
 | `ds4_route_timeout:60` | Optional. Seconds the coordinator waits for the worker route to form before returning an error on a request. Defaults to 60. |
 
-{{% notice warning %}}
+{{% callout style="warning" %}}
 Worker↔coordinator traffic is **plaintext and unauthenticated**: there is no TLS or auth on this channel. Bind `ds4_listen` to an address on a trusted/private network only; using `0.0.0.0` exposes the coordinator on every interface. Run the layer split exclusively over a network you control.
-{{% /notice %}}
+{{% /callout %}}
 
 Once the model is loaded, the coordinator serves requests exactly like a single-node ds4 model: generation goes through the ordinary inference path and is transparently routed across the layer slices.
 
@@ -1211,9 +1213,9 @@ local-ai worker ds4-distributed -- \
 - `N:output` means layer N through the final layer **plus the output head**. The last worker normally owns the output head.
 - The coordinator and all connected workers together **must cover every layer**. Until they do, the coordinator returns a gRPC `UNAVAILABLE` error on inference requests (so a worker that starts slightly after the coordinator is tolerated: once it connects and the route is complete, requests succeed). The wait is tunable via `ds4_route_timeout`.
 
-{{% notice note %}}
-ds4 layer-split inference is **manual setup** in this release (Phase 1): you place the coordinator config and launch each worker yourself, and the layer ranges must be partitioned by hand so they cover the whole model. P2P auto-discovery of the coordinator is planned for a later phase.
-{{% /notice %}}
+{{% callout style="note" %}}
+ds4 layer-split inference is **manual setup**. You place the coordinator config and start each worker yourself. You must split the layer ranges by hand so that they cover the whole model. The coordinator is not found automatically over P2P.
+{{% /callout %}}
 
 ## Scaling
 
@@ -1556,7 +1558,7 @@ The pipeline accepts additional independently weighted scorers and alternate
 pickers without coupling them to `SmartRouter`. This is the extension point for
 queue depth, precise KV utilization, latency, and fairness signals.
 
-## Roadmap: Routing and Caching Enhancements
+## Prefix-cache-aware routing
 
 The scheduling algorithm supports **prefix-cache-aware** routing: bias each request toward the replica that already holds the relevant KV/prefix cache (multi-turn conversations and shared system prompts), so backends reuse cache instead of recomputing it. A router-side radix tree maps prompt-prefix hashes to nodes, with longest-prefix match, a load guard that preserves round-robin behavior under imbalance, and NATS sync across frontends. It is purely a routing-layer hint (no backend changes) and never routes worse than round-robin.
 
@@ -1584,7 +1586,7 @@ chain algorithm are not compatible and will never match requests correctly.
 Reported events populate the exact-residency provider, but the guessed provider
 remains the routing default until a backend producer is available.
 
-Further enhancements, surfaced from a survey of SGLang, vLLM production-stack, Ray Serve, llm-d, AIBrix, and NVIDIA Dynamo, are tracked under the routing roadmap epic ([#10063](https://github.com/mudler/LocalAI/issues/10063)):
+Open work on routing, taken from a survey of SGLang, vLLM production-stack, Ray Serve, llm-d, AIBrix, and NVIDIA Dynamo, is tracked in the routing epic ([#10063](https://github.com/mudler/LocalAI/issues/10063)):
 
 - **Reported/precise KV-event mode** ([#10064](https://github.com/mudler/LocalAI/issues/10064)): subscribe to actual backend KV-cache events for exact residency instead of inferring it from routing history.
 - **Multi-tier cache-overlap scoring** ([#10065](https://github.com/mudler/LocalAI/issues/10065)): credit GPU/CPU/disk cache tiers separately.
@@ -1648,7 +1650,7 @@ PostgreSQL/direct-FS publication and purge coordination is automatic for all
 participants, including the separate owner. Blob ingest holds the revision lock,
 serializing metadata writers; blocked operations must honor cancellation and
 orphan cleanup has a bounded 30-second context. S3 remains an alternative. See
-[Shared filesystem for Files]({{% relref "/features/chats" %}}#shared-filesystem-for-files) for the
+[Shared filesystem for Files]({{% relref "/features/chats-and-agents/chats" %}}#shared-filesystem-for-files) for the
 full storage and durability contract.
 
 No automatic migration occurs: existing filesystem paths stay put and configured

@@ -3,13 +3,13 @@ disableToc = false
 title = "OpenAI Functions and Tools"
 weight = 20
 aliases = ["/features/openai-functions/"]
+description = "Use the OpenAI functions and tools API with LocalAI models on any backend."
+keywords = ["functions","tools","tool calling","json mode"]
 +++
 
 ![Function calling: one tool-call request shape, each backend's native parser extracts the calls](/docs/images/diagrams/tool-call-parsers.png)
 
 LocalAI supports running the OpenAI [functions and tools API](https://platform.openai.com/docs/api-reference/chat/create#chat-create-tools) across multiple backends. The OpenAI request shape is the same regardless of which backend runs your model - LocalAI is responsible for extracting structured tool calls from the model's output before returning the response.
-
-![localai-functions-1](https://github.com/ggerganov/llama.cpp/assets/2420543/5bd15da2-78c1-4625-be90-1e938e6823f1)
 
 To learn more about OpenAI functions, see also the [OpenAI API blog post](https://openai.com/blog/function-calling-and-other-api-updates).
 
@@ -27,7 +27,7 @@ LocalAI also supports [JSON mode](https://platform.openai.com/docs/guides/text-g
 | `mlx` | `mlx_lm.tool_parsers` - **auto-detected from the chat template**, no configuration needed |
 | `mlx-vlm` | `mlx_vlm.tool_parsers` (with fallback to mlx-lm parsers) - **auto-detected from the chat template**, no configuration needed |
 
-Reasoning content (`<think>...</think>` blocks from DeepSeek R1, Qwen3, Gemma 4, etc.) is returned in the OpenAI `reasoning_content` field on the same backends. When a model both reasons and calls a tool in the same turn, see [Interleaved Thinking with Tool Calls]({{%relref "/features/interleaved-thinking" %}}) for how the reasoning survives the tool-result round trip.
+Reasoning content (`<think>...</think>` blocks from DeepSeek R1, Qwen3, Gemma 4, etc.) is returned in the OpenAI `reasoning_content` field on the same backends. When a model both reasons and calls a tool in the same turn, see [Interleaved Thinking with Tool Calls]({{%relref "/features/text/interleaved-thinking" %}}) for how the reasoning survives the tool-result round trip.
 
 ## Setup
 

@@ -10,9 +10,9 @@ description = "Install LocalAI, run a model and build a first agent."
 
 This section takes you from a fresh install to a working chat, a working API call and your first agent. Follow the pages in order the first time.
 
-{{% notice tip %}}
-Docker is the recommended way to install LocalAI. See the [install guide]({{% relref "/start/install" %}}).
-{{% /notice %}}
+{{% callout style="tip" %}}
+On Linux and macOS, install LocalAI with the script `curl -sSL https://localai.io/install.sh | sh`. Use Docker on Windows or when you prefer a container. See the [install guide]({{% relref "/start/install" %}}).
+{{% /callout %}}
 
 ## The path
 

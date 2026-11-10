@@ -2,11 +2,13 @@
 disableToc = false
 title = "CLI Reference"
 weight = 20
+description = "All command line flags and environment variables of the local-ai command."
+keywords = ["cli","flags","environment variables"]
 +++
 
 Complete reference for all LocalAI command-line interface (CLI) parameters and environment variables.
 
-For client-side text inference measurements, see [Benchmark text models]({{% relref "/features/benchmark" %}}).
+For client-side text inference measurements, see [Benchmark text models]({{% relref "/features/text/benchmark" %}}).
 
 These options configure the LocalAI server process. To configure an individual
 model, see [Model Configuration]({{% relref "/models/model-configuration" %}}).
@@ -160,7 +162,7 @@ settings bypasses this automatic default.
 | `--http-compression-min-length` | `1024` | Minimum response size in bytes before gzip compression is applied. Smaller responses are sent as-is because the gzip envelope would outweigh the saving | `$LOCALAI_HTTP_COMPRESSION_MIN_LENGTH` |
 | `--upload-limit` | `0` | Upload limit in MB for request bodies; `0` means not set, and then 15 MB applies, except to uploads of the Files page, which are limited only by the 256 MiB workspace file size, and to chat messages with attachments, which are limited to 1 GiB. When set, it applies to both too, lower or higher (a file is never above 256 MiB and a message never above 1 GiB) | `$LOCALAI_UPLOAD_LIMIT`, `$UPLOAD_LIMIT` |
 | `--api-keys` | | List of API Keys to enable API authentication. When this is set, all requests must be authenticated with one of these API keys | `$LOCALAI_API_KEY`, `$API_KEY` |
-| `--disable-webui` | `false` | Disables the web user interface. When set to true, the server will only expose API endpoints without serving the web interface | `$LOCALAI_DISABLE_WEBUI`, `$DISABLE_WEBUI` |
+| `--disable-web-ui` | `false` | Disables the web user interface. When set to true, the server will only expose API endpoints without serving the web interface | `$LOCALAI_DISABLE_WEBUI`, `$DISABLE_WEBUI` |
 | `--disable-runtime-settings` | `false` | Disables the runtime settings feature. When set to true, the server will not load runtime settings from the `runtime_settings.json` file and the settings web interface will be disabled | `$LOCALAI_DISABLE_RUNTIME_SETTINGS`, `$DISABLE_RUNTIME_SETTINGS` |
 | `--disable-gallery-endpoint` | `false` | Disable the gallery endpoints | `$LOCALAI_DISABLE_GALLERY_ENDPOINT`, `$DISABLE_GALLERY_ENDPOINT` |
 | `--disable-metrics-endpoint` | `false` | Disable the `/metrics` endpoint | `$LOCALAI_DISABLE_METRICS_ENDPOINT`, `$DISABLE_METRICS_ENDPOINT` |
@@ -170,12 +172,12 @@ settings bypasses this automatic default.
 
 The collections service is the knowledge base that the chats search. The old
 `LOCALAI_AGENT_POOL_*` names still work and warn once; see
-[Moving from the old chat and agents]({{% relref "/features/chats-migration" %}}).
+[Moving from the old chat and agents]({{% relref "/features/chats-and-agents/chats-migration" %}}).
 
 | Parameter | Default | Description | Environment Variable |
 |-----------|---------|-------------|----------------------|
 | `--disable-collections` | `false` | Turn the collections service off (the API under `/api/collections`) | `$LOCALAI_DISABLE_COLLECTIONS` |
-| `--collections-api-url` | self | API URL the collections use for embeddings | `$LOCALAI_COLLECTIONS_API_URL` |
+| `--collections-apiurl` | self | API URL the collections use for embeddings | `$LOCALAI_COLLECTIONS_API_URL` |
 | `--collections-api-key` | first API key | API key the collections use for embeddings | `$LOCALAI_COLLECTIONS_API_KEY` |
 | `--collections-default-model` | | Default model of the collections | `$LOCALAI_COLLECTIONS_DEFAULT_MODEL` |
 | `--collections-state-dir` | | State directory of the collections | `$LOCALAI_COLLECTIONS_STATE_DIR` |
@@ -206,12 +208,12 @@ switches the chats themselves off except the `chats` permission of each user.
 |-----------|---------|-------------|----------------------|
 | `--auth-enabled` | `false` | Enable user authentication and authorization | `$LOCALAI_AUTH` |
 | `--auth-database-url` | `{DataPath}/database.db` | Database URL for auth - `postgres://...` for PostgreSQL, or a file path for SQLite | `$LOCALAI_AUTH_DATABASE_URL`, `$DATABASE_URL` |
-| `--github-client-id` | | GitHub OAuth App Client ID (auto-enables auth when set) | `$GITHUB_CLIENT_ID` |
-| `--github-client-secret` | | GitHub OAuth App Client Secret | `$GITHUB_CLIENT_SECRET` |
+| `--git-hub-client-id` | | GitHub OAuth App Client ID (auto-enables auth when set) | `$GITHUB_CLIENT_ID` |
+| `--git-hub-client-secret` | | GitHub OAuth App Client Secret | `$GITHUB_CLIENT_SECRET` |
 | `--oidc-issuer` | | OIDC issuer URL for auto-discovery | `$LOCALAI_OIDC_ISSUER` |
 | `--oidc-client-id` | | OIDC Client ID (auto-enables auth when set) | `$LOCALAI_OIDC_CLIENT_ID` |
 | `--oidc-client-secret` | | OIDC Client Secret | `$LOCALAI_OIDC_CLIENT_SECRET` |
-| `--auth-base-url` | | Base URL for OAuth callbacks (e.g. `http://localhost:8080`) | `$LOCALAI_BASE_URL` |
+| `--external-base-url` | | Base URL for OAuth callbacks (e.g. `http://localhost:8080`) | `$LOCALAI_BASE_URL` |
 | `--auth-admin-email` | | Email address to auto-promote to admin role on login | `$LOCALAI_ADMIN_EMAIL` |
 | `--auth-registration-mode` | `open` | Registration mode: `open`, `approval`, or `invite` | `$LOCALAI_REGISTRATION_MODE` |
 | `--disable-local-auth` | `false` | Disable local email/password registration and login (for OAuth/OIDC-only setups) | `$LOCALAI_DISABLE_LOCAL_AUTH` |
@@ -223,7 +225,7 @@ See [Authentication & Authorization]({{%relref "/administration/authentication" 
 | Parameter | Default | Description | Environment Variable |
 |-----------|---------|-------------|----------------------|
 | `--disable-chats` | `false` | Turn off the chats: the `/api/chats` API, saved agents, triggers, connectors and the agent tasks and jobs. Nothing of them starts | `$LOCALAI_DISABLE_CHATS` |
-| `--chats-auto-resume` | `false` | Go on by itself with a chat turn that a restart interrupted: up to 3 tries, after 15 seconds, 1 minute and 5 minutes, within 30 minutes of the interruption. Off: a person, or the page, resumes it. See [If a frontend dies]({{% relref "/features/chats#clusters" %}}) | `$LOCALAI_CHATS_AUTO_RESUME` |
+| `--chats-auto-resume` | `false` | Go on by itself with a chat turn that a restart interrupted: up to 3 tries, after 15 seconds, 1 minute and 5 minutes, within 30 minutes of the interruption. Off: a person, or the page, resumes it. See [If a frontend dies]({{% relref "/features/chats-and-agents/chats#clusters" %}}) | `$LOCALAI_CHATS_AUTO_RESUME` |
 | `--disable-triggers` | `false` | Turn off the trigger runner and the triggers API; the rest of the chats stays on | `$LOCALAI_DISABLE_TRIGGERS` |
 | `--disable-connectors` | `false` | Turn off the connector bots (Telegram, Slack) and the connectors API; the rest of the chats stays on | `$LOCALAI_DISABLE_CONNECTORS` |
 | `--disable-connector-talkback` | `false` | Turn off the tool with which an agent writes to a chat of its connection, and the reports of triggers to a channel (the rest of the connectors stays on) | `$LOCALAI_DISABLE_CONNECTOR_TALKBACK` |
@@ -239,14 +241,14 @@ See [Authentication & Authorization]({{%relref "/administration/authentication" 
 | `--chat-worker-max-turns` | `32` | Distributed mode: on a chat worker, the most turns it runs at once. A start beyond it is refused and its run fails. `0` means no limit | `$LOCALAI_CHAT_WORKER_MAX_TURNS` |
 | `--chat-start-timeout` | `30s` | Distributed mode: how long a frontend waits for a chat worker to start a turn, and how long the worker gives the start. Set the same value on the frontends and the chat workers | `$LOCALAI_CHAT_START_TIMEOUT` |
 
-See [Chats]({{% relref "/features/chats#switch-the-chats-off" %}}), [Agent tasks and jobs]({{% relref "/features/agent-jobs" %}}) and [Chat workers]({{% relref "/administration/distributed-mode#chat-workers" %}}).
+See [Chats]({{% relref "/features/chats-and-agents/chats#switch-the-chats-off" %}}), [Agent tasks and jobs]({{% relref "/features/chats-and-agents/agent-jobs" %}}) and [Chat workers]({{% relref "/administration/distributed-mode#chat-workers" %}}).
 
 ## Collections Flags
 
 | Parameter | Default | Description | Environment Variable |
 |-----------|---------|-------------|----------------------|
 | `--disable-collections` | `false` | Disable the collections service (the knowledge base API under `/api/collections`) | `$LOCALAI_DISABLE_COLLECTIONS` |
-| `--collections-api-url` | the local server | API URL the collections use for embeddings | `$LOCALAI_COLLECTIONS_API_URL` |
+| `--collections-apiurl` | the local server | API URL the collections use for embeddings | `$LOCALAI_COLLECTIONS_API_URL` |
 | `--collections-api-key` | the first API key | API key the collections use for embeddings | `$LOCALAI_COLLECTIONS_API_KEY` |
 | `--collections-default-model` | | Default model of the collections | `$LOCALAI_COLLECTIONS_DEFAULT_MODEL` |
 | `--collections-state-dir` | the data path | State directory of the collections | `$LOCALAI_COLLECTIONS_STATE_DIR` |
@@ -257,14 +259,14 @@ See [Chats]({{% relref "/features/chats#switch-the-chats-off" %}}), [Agent tasks
 | `--collections-chunk-overlap` | `0` | Chunk overlap size for collection documents | `$LOCALAI_COLLECTIONS_CHUNK_OVERLAP` |
 | `--collections-db-path` | | Where the vector engine keeps its data | `$LOCALAI_COLLECTIONS_DB_PATH` |
 
-See [Collections]({{% relref "/features/collections" %}}). The old `--agent-pool-*` names still work and log a deprecation warning.
+See [Collections]({{% relref "/features/files-and-documents/collections" %}}). The old `--agent-pool-*` names still work and log a deprecation warning.
 
 ## Chat Flags
 
 Use `local-ai chat` to run the built-in terminal agent against a LocalAI server.
 The agent can run shell commands, delegate to sub-agents, and use MCP tools. Read-only
 calls run on their own; everything else goes through an approval prompt you answer.
-See [Terminal agent]({{% relref "/features/terminal-agent" %}}) for the full feature page.
+See [Terminal agent]({{% relref "/features/chats-and-agents/terminal-agent" %}}) for the full feature page.
 
 | Parameter | Default | Description | Environment Variable |
 |-----------|---------|-------------|----------------------|
@@ -291,10 +293,10 @@ local-ai chat mcp add my-server -- npx -y @modelcontextprotocol/server-filesyste
 local-ai chat --config-dir /srv/agent plugin list   # flags first
 ```
 
-{{% notice warning %}}
+{{% callout style="warning" %}}
 In a script, pass `--yes` to those subcommands. Without it, a non-interactive
 `plugin install` installs the plugin, leaves it disabled, and still exits `0`.
-{{% /notice %}}
+{{% /callout %}}
 
 Summon the agent from any shell prompt with `Ctrl+Space`:
 
@@ -329,7 +331,7 @@ distinct from the `1` a failure reports.
 | `--p2p-dht-interval` | `360` | Interval for DHT refresh (used during token generation) | `$LOCALAI_P2P_DHT_INTERVAL`, `$P2P_DHT_INTERVAL` |
 | `--p2p-otp-interval` | `9000` | Interval for OTP refresh (used during token generation) | `$LOCALAI_P2P_OTP_INTERVAL`, `$P2P_OTP_INTERVAL` |
 | `--p2ptoken` | | Token for P2P mode (optional) | `$LOCALAI_P2P_TOKEN`, `$P2P_TOKEN`, `$TOKEN` |
-| `--p2p-network-id` | | Network ID for P2P mode, can be set arbitrarily by the user for grouping a set of instances | `$LOCALAI_P2P_NETWORK_ID`, `$P2P_NETWORK_ID` |
+| `--peer-2-peer-network-id` | | Network ID for P2P mode, can be set arbitrarily by the user for grouping a set of instances | `$LOCALAI_P2P_NETWORK_ID`, `$P2P_NETWORK_ID` |
 | `--federated` | `false` | Enable federated instance | `$LOCALAI_FEDERATED`, `$FEDERATED` |
 
 ## Library sources

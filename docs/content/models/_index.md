@@ -1,7 +1,10 @@
 +++
 disableToc = false
 title = "Model Gallery"
-weight = 5
+linkTitle = "Models and backends"
+weight = 4
+description = "Browse and install models from the model gallery, with the web interface, the CLI or the API."
+keywords = ["models","gallery","install model"]
 +++
 
 The model gallery is a curated collection of models configurations for [LocalAI](https://github.com/go-skynet/LocalAI) that enables one-click install of models directly from the LocalAI Web interface.
@@ -11,15 +14,13 @@ A list of the models available can also be browsed at [the Public LocalAI Galler
 LocalAI to ease out installations of models provide a way to preload models on start and downloading and installing them in runtime. You can install models manually by copying them over the `models` directory, or use the API or the Web interface to configure, download and verify the model assets for you. 
 
 
-{{% notice note %}}
+{{% callout style="note" %}}
 The models in this gallery are not directly maintained by LocalAI. If you find a model that is not working, please open an issue on the [main LocalAI repository](https://github.com/mudler/LocalAI/issues).
- {{% /notice %}}
+ {{% /callout %}}
 
-{{% notice note %}}
+{{% callout style="note" %}}
 GPT and text generation models might have a license which is not permissive for commercial use or might be questionable or without any license at all. Please check the model license before using it. The official gallery contains only open licensed models.
- {{% /notice %}}
-
-![output](https://github.com/mudler/LocalAI/assets/2420543/7b16676e-d5b1-4c97-89bd-9fa5065c21ad)
+ {{% /callout %}}
 
 ## How it works
 
@@ -432,9 +433,9 @@ GALLERIES=[{"name":"localai", "url":"https://example.org/gallery/index.yaml", "m
 
 Each attempt is bounded by a 120 second timeout, and a source that fails — a connection error, a timeout, or an HTTP error status such as 404 or 502 — is skipped for the next 10 minutes so a dead host is not re-dialled on every gallery listing. A source that answers is usable again immediately, and a request you cancel yourself is not counted against it. If every source happens to be inside that 10 minute window, LocalAI tries them all anyway rather than refuse to serve the gallery.
 
-{{% notice warning %}}
+{{% callout style="warning" %}}
 **Neither mirrors nor the offline cache cover a `.ref` URL.** If a gallery's `url` ends in `.ref`, that reference file is fetched and resolved to the real index location *before* mirrors or the cached copy are consulted, and a failure to fetch it fails the gallery outright. That includes the offline case: a `.ref` gallery fails when the network is gone even if it has been fetched successfully before. Mirrors are alternates for the index, not for the reference that points at it. If you want mirror coverage or offline listings, point `url` directly at the index file.
-{{% /notice %}}
+{{% /callout %}}
 
 The key is optional: a gallery without `mirrors` behaves exactly as before.
 
@@ -501,11 +502,11 @@ With strict integrity on (`--require-backend-integrity` or `LOCALAI_REQUIRE_BACK
 
 The optional `source_repository` value works the same for `oci://` galleries as it does for backends: it pins the repository the signature was made for when a shared reusable workflow does the signing. See [Verifying OCI Backends]({{%relref "/models/backends#verifying-oci-backends" %}}).
 
-{{% notice warning %}}
+{{% callout style="warning" %}}
 `artifact_verification` applies only to the gallery artifact. Backend image signatures use `verification`. For compatibility, the artifact loader uses `verification` when `artifact_verification` is absent. Set both fields when the gallery and its backend images have different signing identities.
 
 With `--require-backend-integrity` (`LOCALAI_REQUIRE_BACKEND_INTEGRITY=1`), an `oci://` gallery with neither policy is refused when the models are listed, not only when one is installed. An `oci://` gallery without a policy still lists outside strict mode, with a warning in the log.
-{{% /notice %}}
+{{% /callout %}}
 
 ### Official gallery publishing
 
@@ -578,10 +579,10 @@ GALLERIES=[{"name":"local", "url":"file:///home/user/my-gallery.yaml"}]
 ```
 This will be rejected with a security error.
 
-{{% notice note %}}
+{{% callout style="note" %}}
 
 If you want to build your own gallery, there is no documentation yet. However you can find the source of the default gallery in the [LocalAI repository](https://github.com/mudler/LocalAI/tree/master/gallery).
- {{% /notice %}}
+ {{% /callout %}}
 
 
 ### List Models
@@ -802,13 +803,13 @@ curl $LOCALAI/models/apply -H "Content-Type: application/json" -d '{
    }' 
 ```
 
-An example that installs hermes-2-pro-mistral can be:
-   
+An example that installs `qwen3-4b` from the LocalAI gallery:
+
 ```bash
 LOCALAI=http://localhost:8080
 curl $LOCALAI/models/apply -H "Content-Type: application/json" -d '{
-     "config_url": "https://raw.githubusercontent.com/mudler/LocalAI/v2.25.0/embedded/models/hermes-2-pro-mistral.yaml"
-   }' 
+     "id": "localai@qwen3-4b"
+   }'
 ```
 
 The API will return a job `uuid` that you can use to track the job progress:
@@ -848,13 +849,13 @@ Note: `url` or `id` must be specified. `url` is used to a url to a model gallery
 For example:
 
 ```bash
-PRELOAD_MODELS=[{"url": "github:mudler/LocalAI/gallery/stablediffusion.yaml@master"}]
+PRELOAD_MODELS=[{"id": "localai@stable-diffusion-3-medium"}]
 ```
 
 or as arg:
 
 ```bash
-local-ai --preload-models '[{"url": "github:mudler/LocalAI/gallery/stablediffusion.yaml@master"}]'
+local-ai --preload-models '[{"id": "localai@stable-diffusion-3-medium"}]'
 ```
 
 or in a YAML file:
@@ -865,36 +866,18 @@ local-ai --preload-models-config "/path/to/yaml"
 
 YAML:
 ```yaml
-- url: github:mudler/LocalAI/gallery/stablediffusion.yaml@master
+- id: localai@stable-diffusion-3-medium
 ```
 
 </details>
 
-{{% notice note %}}
+{{% callout style="note" %}}
 
 You can find already some open licensed models in the [LocalAI gallery](https://github.com/mudler/LocalAI/tree/master/gallery).
 
-If you don't find the model in the gallery you can try to use the "base" model and provide an URL to LocalAI:
+If the model is not in the gallery, write a model configuration file and install it with the `config_url` or `url` parameter. See [Model configuration]({{% relref "/models/model-configuration" %}}).
 
-<details>
-
-```
-curl $LOCALAI/models/apply -H "Content-Type: application/json" -d '{
-     "url": "github:mudler/LocalAI/gallery/base.yaml@master",
-     "name": "model-name",
-     "files": [
-        {
-            "uri": "<URL>",
-            "sha256": "<SHA>",
-            "filename": "model"
-        }
-     ]
-   }'
-```
-
-</details>
-
- {{% /notice %}}
+{{% /callout %}}
 
 ### Override a model name
 
@@ -913,7 +896,7 @@ For example, to install a model as `gpt-3.5-turbo`:
 ```bash
 LOCALAI=http://localhost:8080
 curl $LOCALAI/models/apply -H "Content-Type: application/json" -d '{
-      "url": "github:mudler/LocalAI/gallery/gpt4all-j.yaml",
+      "id": "localai@qwen3-4b",
       "name": "gpt-3.5-turbo"
    }' 
 ```
@@ -965,33 +948,31 @@ curl $LOCALAI/models/apply -H "Content-Type: application/json" -d '{
 
 ## Examples
 
-### Image generation: Stable diffusion
-
-URL: https://github.com/EdVince/Stable-Diffusion-NCNN
+### Image generation: Stable Diffusion 3
 
 {{< tabs >}}
-{{% tab name="Prepare the model in runtime" %}}
+{{% tab title="Prepare the model in runtime" %}}
 
-While the API is running, you can install the model by using the `/models/apply` endpoint and point it to the `stablediffusion` model in the [models-gallery](https://github.com/mudler/LocalAI/tree/master/gallery#image-generation-stable-diffusion):
+While the API is running, install the model with the `/models/apply` endpoint. Use the gallery name `stable-diffusion-3-medium`:
 ```bash
 curl $LOCALAI/models/apply -H "Content-Type: application/json" -d '{         
-     "url": "github:mudler/LocalAI/gallery/stablediffusion.yaml@master"
+     "id": "localai@stable-diffusion-3-medium"
    }'
 ```
 
 {{% /tab %}}
-{{% tab name="Automatically prepare the model before start" %}}
+{{% tab title="Automatically prepare the model before start" %}}
 
 You can set the `PRELOAD_MODELS` environment variable:
 
 ```bash
-PRELOAD_MODELS=[{"url": "github:mudler/LocalAI/gallery/stablediffusion.yaml@master"}]
+PRELOAD_MODELS=[{"id": "localai@stable-diffusion-3-medium"}]
 ```
 
 or as arg:
 
 ```bash
-local-ai --preload-models '[{"url": "github:mudler/LocalAI/gallery/stablediffusion.yaml@master"}]'
+local-ai --preload-models '[{"id": "localai@stable-diffusion-3-medium"}]'
 ```
 
 or in a YAML file:
@@ -1002,7 +983,7 @@ local-ai --preload-models-config "/path/to/yaml"
 
 YAML:
 ```yaml
-- url: github:mudler/LocalAI/gallery/stablediffusion.yaml@master
+- id: localai@stable-diffusion-3-medium
 ```
 
 {{% /tab %}}
@@ -1023,7 +1004,7 @@ curl $LOCALAI/v1/images/generations -H "Content-Type: application/json" -d '{
 URL: https://github.com/ggerganov/whisper.cpp
 
 {{< tabs >}}
-{{% tab name="Prepare the model in runtime" %}}
+{{% tab title="Prepare the model in runtime" %}}
 
 ```bash
 curl $LOCALAI/models/apply -H "Content-Type: application/json" -d '{         
@@ -1033,7 +1014,7 @@ curl $LOCALAI/models/apply -H "Content-Type: application/json" -d '{
 ```
 
 {{% /tab %}}
-{{% tab name="Automatically prepare the model before start" %}}
+{{% tab title="Automatically prepare the model before start" %}}
 
 You can set the `PRELOAD_MODELS` environment variable:
 
@@ -1088,9 +1069,9 @@ An optional, list of additional files can be specified to be downloaded within `
 
 The `url` is a full URL, or a github url (`github:org/repo/file.yaml`), or a local file (`file:///path/to/file.yaml`). 
 
-{{% notice warning %}}
+{{% callout style="warning" %}}
 **Local file security restriction:** When using `file://` URLs, the file path must be within your models directory (specified by `MODELS_PATH`). Files outside this directory will be rejected for security reasons.
-{{% /notice %}}
+{{% /callout %}}
 
 The `id` is a string in the form `<GALLERY>@<MODEL_NAME>`, where `<GALLERY>` is the name of the gallery, and `<MODEL_NAME>` is the name of the model in the gallery. Galleries can be specified during startup with the `GALLERIES` environment variable.
 

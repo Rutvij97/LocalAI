@@ -5,6 +5,8 @@ icon = "sync"
 
 weight = 80
 aliases = ["/integrations/"]
+description = "Projects and tools that work with LocalAI."
+keywords = ["integrations","clients"]
 +++
 
 ## Community Integrations
@@ -24,7 +26,7 @@ Feel free to open up a Pull request (by clicking at the "Edit page" below) to ge
 Community-maintained packages of LocalAI. Package versions and
 availability may lag upstream releases.
 
-- [Homebrew](https://formulae.brew.sh/formula/localai) - `brew install localai`
+- [Homebrew](https://formulae.brew.sh/formula/localai): a community package, not maintained by the LocalAI project. Check the formula before you use it.
 - [ALT Sisyphus](https://packages.altlinux.org/en/sisyphus/srpms/localai/) - `localai` package
 - [Gentoo overlay](https://git.ipnmod.org/packages/local-ai-overlay) - `sci-ml/local-ai` and per-backend packages, overlay `local-ai` in Gentoo's repository index
 
@@ -471,5 +473,5 @@ The realtime voice assistant example demonstrates how to build a voice assistant
 - [Realtime Voice Assistant Example (Python)](https://github.com/mudler/LocalAI-examples/tree/main/realtime)
 - [Realtime Voice Assistant Demo (Go)](https://github.com/localai-org/localai-realtime-demo)
 - [LocalAI Realtime API documentation]({{% relref "/features" %}})
-- [Audio features documentation]({{% relref "/features/text-to-audio" %}})
-- [Transcription features documentation]({{% relref "/features/audio-to-text" %}})
+- [Audio features documentation]({{% relref "/features/audio/text-to-audio" %}})
+- [Transcription features documentation]({{% relref "/features/audio/audio-to-text" %}})

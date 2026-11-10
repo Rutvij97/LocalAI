@@ -4,6 +4,8 @@ title = "Troubleshooting"
 icon = "build"
 weight = 190
 aliases = ["/basics/troubleshooting/"]
+description = "Find the cause of common LocalAI problems: startup, models, GPUs and downloads."
+keywords = ["troubleshooting","errors","debug"]
 +++
 
 This guide covers common issues you may encounter when using LocalAI, organized by category. For each issue, diagnostic steps and solutions are provided.
@@ -38,7 +40,7 @@ When LocalAI gets `SIGTERM` or `SIGINT` (a rolling update, `docker stop`), it st
 | Close the chats | The chat turns that still run are stopped and stored. A turn that does not stop in time, for example a tool that ignores the stop, is marked interrupted in the database by the closing process itself, so that it can resume. | 15 seconds |
 | Other hooks | The rest of the process closes. The chats close inside this step. | 20 seconds in all |
 
-The whole stop takes at most `--shutdown-timeout` plus 21 seconds: 41 seconds with the default. Give the platform a longer termination grace period than that. In Kubernetes the grace period also counts the `preStop` hook, so with `terminationGracePeriodSeconds: 60` and a `preStop` of 10 seconds, 50 seconds are left after `SIGTERM`, and the default leaves 9 to spare. With the Kubernetes default of 30 seconds and no `preStop`, set `--shutdown-timeout` to `5s` or less, or raise the grace period. A process that is killed before it ends leaves its turns running until the stale-turn check (one minute) marks them interrupted. Either way, the chat shows the turn as interrupted and resumes it by itself (see [Chats]({{%relref "/features/chats" %}})).
+The whole stop takes at most `--shutdown-timeout` plus 21 seconds: 41 seconds with the default. Give the platform a longer termination grace period than that. In Kubernetes the grace period also counts the `preStop` hook, so with `terminationGracePeriodSeconds: 60` and a `preStop` of 10 seconds, 50 seconds are left after `SIGTERM`, and the default leaves 9 to spare. With the Kubernetes default of 30 seconds and no `preStop`, set `--shutdown-timeout` to `5s` or less, or raise the grace period. A process that is killed before it ends leaves its turns running until the stale-turn check (one minute) marks them interrupted. Either way, the chat shows the turn as interrupted and resumes it by itself (see [Chats]({{%relref "/features/chats-and-agents/chats" %}})).
 
 For Docker deployments:
 
@@ -83,16 +85,11 @@ uname -m
 # aarch64 → download the arm64 binary
 ```
 
-### macOS: Application Is Quarantined
+### macOS: the app does not open
 
-**Symptoms:** macOS blocks LocalAI from running because the DMG is not signed by Apple.
+**Symptoms:** macOS shows a warning when you open LocalAI, or the app does not start.
 
-**Solution:** See [GitHub issue #6268](https://github.com/mudler/LocalAI/issues/6268) for quarantine bypass instructions. This is tracked for resolution in [issue #6244](https://github.com/mudler/LocalAI/issues/6244).
-
-
-
-
-
+**Solution:** The release DMG and the `local-ai` binary are signed with an Apple Developer ID and notarized, so a current release opens without a workaround. Check that you downloaded `LocalAI.dmg` from the [releases page](https://github.com/mudler/LocalAI/releases/latest). To check the signature, run the `spctl` command in the [macOS install guide]({{% relref "/start/install/macos" %}}#verification). A copy that was modified or downloaded from another place fails this check.
 
 ## Model Loading Problems
 
@@ -172,7 +169,7 @@ docker run --rm --gpus all nvidia/cuda:12.8.0-base-ubuntu24.04 nvidia-smi
 
 When working correctly, LocalAI logs should show: `ggml_init_cublas: found X CUDA devices`.
 
-Ensure you are using a CUDA-enabled container image (tags containing `cuda11`, `cuda12`, or `cuda13`). CPU-only images cannot use NVIDIA GPUs.
+Ensure you are using a CUDA-enabled container image (tags containing `cuda-12` or `cuda-13`). CPU-only images cannot use NVIDIA GPUs.
 
 **AMD (ROCm):**
 
